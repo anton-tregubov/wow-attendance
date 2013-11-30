@@ -142,7 +142,7 @@ public class MainFrame extends JFrame {
     }
 
     static class BooleanRenderer extends JCheckBox implements TableCellRenderer {
-        private static final Border noFocusBorder = new EmptyBorder(1, 1, 1, 1);
+        private static final Border NO_FOCUS_BORDER = new EmptyBorder(1, 1, 1, 1);
         private static final Color GREEN = new Color(170, 187, 155);
         private static final Color RED = new Color(231, 158, 149);
 
@@ -168,7 +168,7 @@ public class MainFrame extends JFrame {
             if (hasFocus) {
                 setBorder(UIManager.getBorder("Table.focusCellHighlightBorder"));
             } else {
-                setBorder(noFocusBorder);
+                setBorder(NO_FOCUS_BORDER);
             }
 
             return this;
