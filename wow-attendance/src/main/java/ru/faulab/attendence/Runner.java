@@ -1,7 +1,9 @@
 package ru.faulab.attendence;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.Persistence;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import ru.faulab.attendence.module.MainModule;
+import ru.faulab.attendence.ui.MainFrame;
 
 public class Runner {
 
@@ -14,10 +16,8 @@ public class Runner {
         String userHome = System.getProperty("user.home");
         System.setProperty("derby.system.home", userHome);
 
-        EntityManagerFactory emf = Persistence.createEntityManagerFactory("WoWAttendance");
-
-        CharacterService characterService = new CharacterService(emf, new GuildDataLoader());
-        MainFrame mainFrame = new MainFrame(new AttendanceLogParser(), new AttendanceService(emf, characterService), characterService);
+        Injector injector = Guice.createInjector(new MainModule());
+        MainFrame mainFrame = injector.getInstance(MainFrame.class);
         mainFrame.init();
     }
 
