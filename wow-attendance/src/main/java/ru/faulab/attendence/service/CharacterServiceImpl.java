@@ -104,18 +104,13 @@ public class CharacterServiceImpl implements CharacterService {
 
     @Override
     public ListenableFuture<ImmutableSet<Character>> loadAllActiveCharacters() {
-        System.out.println("Has profit0" + Thread.currentThread().getName());
         ListenableFuture<EntityManager> entityManagerAsync = entityManagerFactory.requestEntityManager();
         return Futures.transform(entityManagerAsync, new AsyncFunction<EntityManager, ImmutableSet<Character>>() {
             @Override
             public ListenableFuture<ImmutableSet<Character>> apply(final EntityManager entityManager) throws Exception {
-                System.out.println("Has profit1" + Thread.currentThread().getName());
                 return listeningExecutorService.submit(new Callable<ImmutableSet<Character>>() {
                     @Override
                     public ImmutableSet<Character> call() throws Exception {
-
-                        System.out.println("Has profit2" + Thread.currentThread().getName());
-
                         return ImmutableSet.copyOf(entityManager.createNamedQuery("Character.findAllActiveCharacters", Character.class).getResultList());
                     }
                 });
@@ -125,12 +120,10 @@ public class CharacterServiceImpl implements CharacterService {
 
     @Override
     public ListenableFuture<ImmutableSet<Character>> loadCharacters(final Iterable<String> nicknames) {
-        System.out.println("No profit0" + Thread.currentThread().getName());
         ListenableFuture<EntityManager> entityManagerAsync = entityManagerFactory.requestEntityManager();
         return Futures.transform(entityManagerAsync, new Function<EntityManager, ImmutableSet<Character>>() {
             @Override
             public ImmutableSet<Character> apply(EntityManager entityManager) {
-                System.out.println("No profit1" + Thread.currentThread().getName());
                 return ImmutableSet.copyOf(entityManager.createNamedQuery("Character.findCharactersByNames", Character.class).setParameter("nicknames", nicknames).getResultList());
             }
         }, listeningExecutorService);

@@ -11,6 +11,7 @@ public class Runner {
 
     /*
     * 1. Статистика
+    * 2. AsyncFunction  - удалить так как профита никакого.
     * */
     public static void main(String[] args) throws Exception {
 
