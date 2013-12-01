@@ -1,6 +1,7 @@
 package ru.faulab.attendence.service;
 
 import com.google.common.base.Splitter;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 
 import java.text.ParseException;
@@ -24,7 +25,8 @@ public class AttendanceLogParserImpl implements AttendanceLogParser {
         try {
             date = DATE_FORMAT.parse(dateS);
         } catch (ParseException e) {
-            e.printStackTrace();
+            //todo - make exception more User Friendly
+            Throwables.propagate(e);
         }
 
         ImmutableSet.Builder<String> attendances = ImmutableSet.builder();

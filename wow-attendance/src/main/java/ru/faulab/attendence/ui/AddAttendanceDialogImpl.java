@@ -2,6 +2,8 @@ package ru.faulab.attendence.ui;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Ordering;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.Inject;
 import ru.faulab.attendence.service.AttendanceLogParser;
 import ru.faulab.attendence.service.AttendanceLogParserImpl;
@@ -29,13 +31,14 @@ public class AddAttendanceDialogImpl extends JDialog implements AddAttendanceDia
     private final AttendanceLogParser attendanceLogParser;
     private final AttendanceService attendanceService;
     private AttendanceLogParserImpl.DayAttendance lastParsedData;
-    private AttendanceService.AddAttendanceReport addAttendanceReport;
+    private ListenableFuture<AttendanceService.AddAttendanceReport> addAttendanceReport;
 
     @Inject
     public AddAttendanceDialogImpl(Frame owner, AttendanceLogParser attendanceLogParser, AttendanceService attendanceService) {
         super(owner);
         this.attendanceLogParser = attendanceLogParser;
         this.attendanceService = attendanceService;
+        this.addAttendanceReport = Futures.immediateFuture(null);
         setModal(true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 
@@ -62,7 +65,7 @@ public class AddAttendanceDialogImpl extends JDialog implements AddAttendanceDia
         okButton = new JButton(new AbstractAction("Импортировать") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                addAttendanceReport = AddAttendanceDialogImpl.this.attendanceService.addAttendancies(lastParsedData.day, lastParsedData.nicknames);
+                addAttendanceReport = AddAttendanceDialogImpl.this.attendanceService.addAttendances(lastParsedData.day, lastParsedData.nicknames);
                 AddAttendanceDialogImpl.this.dispose();
             }
         });
@@ -115,7 +118,7 @@ public class AddAttendanceDialogImpl extends JDialog implements AddAttendanceDia
     }
 
     @Override
-    public AttendanceService.AddAttendanceReport importAttendance() {
+    public ListenableFuture<AttendanceService.AddAttendanceReport> importAttendance() {
         initFromClipboard();
         setSize(500, 300);
         setLocationRelativeTo(getParent());

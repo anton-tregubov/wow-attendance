@@ -12,7 +12,6 @@ public class Attendance {
     @ManyToOne
     @MapsId("characterId")
     private Character character;
-
     @EmbeddedId
     private Key key;
 
@@ -30,10 +29,6 @@ public class Attendance {
 
     public Date getDay() {
         return key.getDay();
-    }
-
-    public Key getKey() {
-        return key;
     }
 
     @Override
@@ -57,17 +52,17 @@ public class Attendance {
     }
 
     @Embeddable
-    public static class Key implements Serializable {
-        @Column(name = "CHARACTER_ID")
+    protected static class Key implements Serializable {
+        @Column(name = "CHARACTER_ID", nullable = false)
         private Integer characterId;
-        @Column(name = "day")
+        @Column(name = "day", nullable = false)
         @Temporal(TemporalType.DATE)
         private Date day;
 
-        public Key() {
+        protected Key() {
         }
 
-        public Key(Integer characterId, Date day) {
+        protected Key(Integer characterId, Date day) {
             this.characterId = characterId;
             this.day = day;
         }

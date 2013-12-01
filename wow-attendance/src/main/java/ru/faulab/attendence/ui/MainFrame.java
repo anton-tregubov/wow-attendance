@@ -1,16 +1,17 @@
 package ru.faulab.attendence.ui;
 
-import com.google.common.collect.Iterables;
-import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
-import com.google.common.collect.TreeMultimap;
+import com.google.common.collect.*;
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.inject.Inject;
 import ru.faulab.attendence.dto.store.Attendance;
 import ru.faulab.attendence.dto.store.Character;
 import ru.faulab.attendence.service.AttendanceService;
 import ru.faulab.attendence.service.CharacterService;
-import ru.faulab.attendence.service.CharacterServiceImpl;
 
+import javax.annotation.Nullable;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
@@ -21,6 +22,7 @@ import java.awt.event.ActionEvent;
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.SortedSet;
 
 public class MainFrame extends JFrame {
@@ -29,11 +31,13 @@ public class MainFrame extends JFrame {
     private final AttendanceService attendanceService;
     private final CharacterService characterService;
     private final JournalTableModel journalTableModel;
+    private final ListeningExecutorService listeningExecutorService;
 
     @Inject
-    public MainFrame(AttendanceService attendanceService, CharacterService characterService, final AddAttendanceDialogFactory attendanceDialogProvider) throws HeadlessException {
+    public MainFrame(AttendanceService attendanceService, CharacterService characterService, final AddAttendanceDialogFactory attendanceDialogProvider, ListeningExecutorService listeningExecutorService) throws HeadlessException {
         this.attendanceService = attendanceService;
         this.characterService = characterService;
+        this.listeningExecutorService = listeningExecutorService;
 
         journalTableModel = new JournalTableModel();
         journal = new JTable(journalTableModel);
@@ -44,8 +48,18 @@ public class MainFrame extends JFrame {
         buttonBar.add(new AbstractAction("Импортировать посещение") {
             @Override
             public void actionPerformed(ActionEvent e) {
-                AttendanceService.AddAttendanceReport addAttendanceReport = attendanceDialogProvider.create(MainFrame.this).importAttendance();
-                updateTableAttendance();
+                ListenableFuture<AttendanceService.AddAttendanceReport> addAttendanceReportFuture = attendanceDialogProvider.create(MainFrame.this).importAttendance();
+                Futures.addCallback(addAttendanceReportFuture, new FutureCallback<AttendanceService.AddAttendanceReport>() {
+                    @Override
+                    public void onSuccess(AttendanceService.AddAttendanceReport result) {
+                        updateTableAttendance();
+                    }
+
+                    @Override
+                    public void onFailure(Throwable t) {
+                        t.printStackTrace();
+                    }
+                });
             }
         });
         Container pane = getContentPane();
@@ -60,7 +74,7 @@ public class MainFrame extends JFrame {
     }
 
     public void init() {
-        CharacterServiceImpl.Report sync = characterService.sync();
+        characterService.synchronizeCharacters();
         updateTableAttendance();
     }
 
@@ -74,18 +88,41 @@ public class MainFrame extends JFrame {
         toDay.set(Calendar.DAY_OF_WEEK, Calendar.WEDNESDAY);
 
         Calendar fromDay = (Calendar) toDay.clone();
-        fromDay.roll(Calendar.WEEK_OF_YEAR, -4);
+        fromDay.roll(Calendar.WEEK_OF_YEAR, -2);
 
-        System.out.println();
-        journalTableModel.setAttendancies(attendanceService.loadAttendanceByPeriod(fromDay.getTime(), toDay.getTime()), characterService.allRegisteredCharacters());
+        ListenableFuture<List<ImmutableSet<?>>> tuple = Futures.allAsList(attendanceService.loadAttendanceFromPeriod(fromDay.getTime(), toDay.getTime()), characterService.loadAllActiveCharacters());
+        Futures.addCallback(tuple, new FutureCallback<List<ImmutableSet<?>>>() {
+            @Override
+            public void onSuccess(@Nullable List<ImmutableSet<?>> result) {
+                final ImmutableSet<Attendance> attendaces = (ImmutableSet<Attendance>) Iterables.get(result, 0);
+                final ImmutableSet<Character> characters = (ImmutableSet<Character>) Iterables.get(result, 1);
+                Runnable operation = new Runnable() {
+                    @Override
+                    public void run() {
+                        journalTableModel.setAttendancies(attendaces, characters);
+                    }
+                };
+
+                if (SwingUtilities.isEventDispatchThread()) {
+                    operation.run();
+                } else {
+                    SwingUtilities.invokeLater(operation);
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable t) {
+                t.printStackTrace();
+            }
+        });
     }
 
     private static class JournalTableModel extends AbstractTableModel {
 
+        private static final DateFormat DATE_FORMAT = DateFormat.getDateInstance(DateFormat.MEDIUM);
         private Date[] dates = new Date[0];
         private String[] nicknames = new String[0];
         private Boolean[][] attendance = new Boolean[0][0];
-        private final DateFormat DATE_FORMAT = DateFormat.getDateInstance(DateFormat.MEDIUM);
 
         public synchronized String getColumnName(int column) {
             return column == 0 ? "Герои/Даты" : DATE_FORMAT.format(dates[column - 1]);

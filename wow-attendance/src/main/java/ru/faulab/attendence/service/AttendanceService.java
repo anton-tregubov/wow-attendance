@@ -1,14 +1,15 @@
 package ru.faulab.attendence.service;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.ListenableFuture;
 import ru.faulab.attendence.dto.store.Attendance;
 
 import java.util.Date;
 
 public interface AttendanceService {
-    ImmutableSet<Attendance> loadAttendanceByPeriod(Date from, Date to);
+    ListenableFuture<ImmutableSet<Attendance>> loadAttendanceFromPeriod(Date from, Date to);
 
-    AddAttendanceReport addAttendancies(Date day, ImmutableSet<String> nicknames);
+    ListenableFuture<AddAttendanceReport> addAttendances(Date day, ImmutableSet<String> nicknames);
 
     public final static class AddAttendanceReport {
         public final ImmutableSet<String> unknownPersons;

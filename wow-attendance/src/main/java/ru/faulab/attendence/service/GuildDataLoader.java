@@ -1,9 +1,10 @@
 package ru.faulab.attendence.service;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.ListenableFuture;
 
 public interface GuildDataLoader {
-    GuildData loadGuildMembers();
+    ListenableFuture<GuildData> loadActualGuildInfo();
 
     public static final class GuildData {
         public final ImmutableSet<String> newComers;

@@ -1,7 +1,8 @@
 package ru.faulab.attendence.ui;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import ru.faulab.attendence.service.AttendanceService;
 
 public interface AddAttendanceDialog {
-    AttendanceService.AddAttendanceReport importAttendance();
+    ListenableFuture<AttendanceService.AddAttendanceReport> importAttendance();
 }

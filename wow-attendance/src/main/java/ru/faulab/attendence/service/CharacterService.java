@@ -1,24 +1,25 @@
 package ru.faulab.attendence.service;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.ListenableFuture;
 import ru.faulab.attendence.dto.store.Character;
 import ru.faulab.attendence.dto.store.Rang;
 
 public interface CharacterService {
-    Report sync();
+    ListenableFuture<UpdateCharactersReport> synchronizeCharacters();
 
-    ru.faulab.attendence.dto.store.Character findCharacter(String nickname);
+    ListenableFuture<ImmutableSet<Character>> loadAllActiveCharacters();
 
-    ImmutableSet<Character> allRegisteredCharacters();
+    ListenableFuture<ImmutableSet<Character>> loadCharacters(Iterable<String> nicknames);
 
-    public static class Report {
-        public final ImmutableSet<CharacterServiceImpl.Report.RangChange> rangChanges;
+    public static final class UpdateCharactersReport {
+        public final ImmutableSet<UpdateCharactersReport.RangChange> rangChanges;
 
-        public Report(ImmutableSet<CharacterServiceImpl.Report.RangChange> rangChanges) {
+        public UpdateCharactersReport(ImmutableSet<UpdateCharactersReport.RangChange> rangChanges) {
             this.rangChanges = rangChanges;
         }
 
-        public static class RangChange {
+        public static final class RangChange {
             public final String nickName;
             public final Rang oldRang;
             public final Rang newRang;

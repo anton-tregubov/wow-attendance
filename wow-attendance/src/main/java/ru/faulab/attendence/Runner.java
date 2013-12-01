@@ -9,7 +9,6 @@ public class Runner {
 
     /*
     * 1. Статистика
-    * 2. Игроки ушедшии из гильдии не должны попадать в табилуц, а должны помечаться как неактивные с сохранениеи истории
     * */
     public static void main(String[] args) throws Exception {
 
@@ -17,6 +16,7 @@ public class Runner {
         System.setProperty("derby.system.home", userHome);
 
         Injector injector = Guice.createInjector(new MainModule());
+
         MainFrame mainFrame = injector.getInstance(MainFrame.class);
         mainFrame.init();
     }
