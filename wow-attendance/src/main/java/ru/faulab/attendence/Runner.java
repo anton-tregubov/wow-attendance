@@ -5,12 +5,18 @@ import com.google.inject.Injector;
 import ru.faulab.attendence.module.MainModule;
 import ru.faulab.attendence.ui.MainFrame;
 
+import javax.swing.*;
+
 public class Runner {
 
     /*
     * 1. Статистика
     * */
     public static void main(String[] args) throws Exception {
+
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        JFrame.setDefaultLookAndFeelDecorated(true);
+        JDialog.setDefaultLookAndFeelDecorated(true);
 
         String userHome = System.getProperty("user.home");
         System.setProperty("derby.system.home", userHome);
