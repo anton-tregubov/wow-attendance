@@ -114,7 +114,7 @@ public class MainFrame extends JFrame {
             public void onFailure(Throwable t) {
                 t.printStackTrace();
             }
-        });
+        }, listeningExecutorService);
     }
 
     private static class JournalTableModel extends AbstractTableModel {
