@@ -41,6 +41,7 @@ public class CharacterServiceImpl implements CharacterService {
             if (character != null) {
                 Rang oldRang = character.getRang();
                 character.setRang(rang);
+                entityManager.merge(character);
                 reportBuilder.add(new UpdateCharactersReport.RangChange(member, oldRang, rang));
             } else {
                 character = new Character(member, rang, new Date());
